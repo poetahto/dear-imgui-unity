@@ -11,6 +11,7 @@ namespace ImGuiNET.Unity
     /// <summary>
     /// Dear ImGui integration into Unity
     /// </summary>
+    [DefaultExecutionOrder(-10)]
     public class DearImGui : MonoBehaviour
     {
         ImGuiUnityContext _context;
@@ -140,19 +141,16 @@ namespace ImGuiNET.Unity
             s_prepareFramePerfMarker.End();
 
             s_layoutPerfMarker.Begin(this);
-            try
-            {
-                if (_doGlobalLayout)
-                    ImGuiUn.DoLayout();   // ImGuiUn.Layout: global handlers
-                Layout?.Invoke();     // this.Layout: handlers specific to this instance
-            }
-            finally
-            {
-                ImGui.Render();
-                s_layoutPerfMarker.End();
-            }
+            if (_doGlobalLayout)
+                ImGuiUn.DoLayout();   // ImGuiUn.Layout: global handlers
+            Layout?.Invoke();     // this.Layout: handlers specific to this instance
+            s_layoutPerfMarker.End();
+        }
 
+        void LateUpdate()
+        {
             s_drawListPerfMarker.Begin(this);
+            ImGui.Render();
             _cmd.Clear();
             _renderer.RenderDrawLists(_cmd, ImGui.GetDrawData());
             s_drawListPerfMarker.End();
